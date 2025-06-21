@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FocusPro V2</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             display: flex;
             flex-direction: column;
@@ -12,58 +16,193 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            font-family: sans-serif;
-            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 1rem;
+            padding: 3rem;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            margin: 0 0 2rem 0;
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .timer-container {
+            position: relative;
+            display: inline-block;
+            margin: 2rem 0;
+        }
+        
+        .progress-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+        }
+        
+        .progress-ring-background {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 6;
+        }
+        
+        .progress-ring-progress {
+            fill: none;
+            stroke: #3182ce;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            stroke-dasharray: 565.48; /* 2 * π * 90 */
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s ease-in-out;
         }
         
         .timer {
-            font-size: 4rem;
-            margin: 2rem;
-            font-weight: bold;
-            color: #333;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            position: relative;
+            z-index: 10;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
         button {
-            padding: 1rem 2rem;
-            margin: 0.5rem;
+            padding: 0.875rem 2rem;
             cursor: pointer;
             border: none;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s ease-in-out;
+            min-width: 100px;
+            position: relative;
+            overflow: hidden;
         }
         
-        #startBtn {
-            background-color: #4CAF50;
-            color: white;
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
         
-        #pauseBtn {
-            background-color: #ff9800;
+        button:hover:before {
+            left: 100%;
+        }
+        
+        #startBtn, #pauseBtn {
+            background-color: #3182ce;
             color: white;
+            box-shadow: 0 4px 6px -1px rgba(49, 130, 206, 0.3);
+        }
+        
+        #startBtn:hover, #pauseBtn:hover {
+            background-color: #2c5aa0;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -1px rgba(49, 130, 206, 0.4);
         }
         
         #resetBtn {
-            background-color: #f44336;
+            background-color: #e53e3e;
             color: white;
+            box-shadow: 0 4px 6px -1px rgba(229, 62, 62, 0.3);
         }
         
-        button:hover {
-            opacity: 0.8;
+        #resetBtn:hover {
+            background-color: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -1px rgba(229, 62, 62, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .hidden {
             display: none;
         }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .timer {
+                font-size: 2.5rem;
+            }
+            
+            .progress-ring {
+                width: 160px;
+                height: 160px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>FocusPro V2</h1>
-    <div class="timer" id="timer">25:00</div>
-    <div>
-        <button id="startBtn">Start</button>
-        <button id="pauseBtn" class="hidden">Pause</button>
-        <button id="resetBtn">Reset</button>
+    <div class="container">
+        <h1>FocusPro V2</h1>
+        <div class="timer-container">
+            <svg class="progress-ring" viewBox="0 0 200 200">
+                <circle class="progress-ring-background" cx="100" cy="100" r="90"/>
+                <circle class="progress-ring-progress" cx="100" cy="100" r="90"/>
+            </svg>
+            <div class="timer" id="timer">25:00</div>
+        </div>
+        <div class="button-group">
+            <button id="startBtn">Start</button>
+            <button id="pauseBtn" class="hidden">Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
     </div>
 
     <script>
