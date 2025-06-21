@@ -119,6 +119,47 @@
             font-style: italic;
         }
         
+        .stats-container {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            width: 100%;
+        }
+        
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3182ce;
+        }
+        
+        #clearBtn {
+            background-color: #718096;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(113, 128, 150, 0.3);
+        }
+        
+        #clearBtn:hover {
+            background-color: #4a5568;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -1px rgba(113, 128, 150, 0.4);
+        }
+        
         .progress-ring {
             position: absolute;
             top: 50%;
@@ -259,6 +300,11 @@
                 width: 100%;
                 max-width: 200px;
             }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -281,10 +327,22 @@
             <div class="current-task" id="currentTask">No task set</div>
         </div>
         
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-label">Sessions Completed</div>
+                <div class="stat-value" id="sessionsCount">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Focus Time</div>
+                <div class="stat-value" id="focusTime">0m</div>
+            </div>
+        </div>
+        
         <div class="button-group">
             <button id="startBtn">Start</button>
             <button id="pauseBtn" class="hidden">Pause</button>
             <button id="resetBtn">Reset</button>
+            <button id="clearBtn">Clear Data</button>
         </div>
     </div>
 
@@ -293,6 +351,8 @@
         let timerId = null;
         let isRunning = false;
         let currentTask = '';
+        let completedSessions = [];
+        let totalFocusTime = 0; // in minutes
 
         function updateDisplay() {
             const minutes = Math.floor(timeLeft / 60);
@@ -314,16 +374,35 @@
                     
                     if (timeLeft <= 0) {
                         console.log('Timer finished!');
+                        
+                        // Record completed session
+                        const session = {
+                            task: currentTask || 'No task set',
+                            duration: 25, // 25 minutes
+                            timestamp: new Date().toISOString(),
+                            date: new Date().toLocaleDateString()
+                        };
+                        
+                        completedSessions.push(session);
+                        totalFocusTime += 25;
+                        
                         if (currentTask) {
                             console.log(`Task completed: "${currentTask}" - Duration: 25 minutes`);
                         } else {
                             console.log('Timer completed - No task was set');
                         }
+                        
                         clearInterval(timerId);
                         isRunning = false;
                         timeLeft = 0;
                         updateDisplay();
                         swapButtons();
+                        
+                        // Save completion to storage and update stats
+                        saveToStorage();
+                        updateStatsDisplay();
+                        
+                        console.log('Session saved:', session);
                     }
                 }, 1000);
                 
@@ -337,6 +416,7 @@
                 isRunning = false;
                 console.log('Timer paused!');
                 swapButtons();
+                saveToStorage(); // Save when timer is paused
             }
         }
 
@@ -377,16 +457,103 @@
                 currentTaskDisplay.classList.remove('empty');
                 taskInput.value = '';
                 console.log('Task set:', taskValue);
+                saveToStorage(); // Save when task is set
             } else {
                 currentTask = '';
                 currentTaskDisplay.textContent = 'No task set';
                 currentTaskDisplay.classList.add('empty');
                 console.log('Task cleared - no input provided');
+                saveToStorage(); // Save when task is cleared
+            }
+        }
+
+        // Storage Functions
+        function saveToStorage() {
+            console.log('Saving to localStorage...');
+            try {
+                const data = {
+                    currentTask: currentTask,
+                    completedSessions: completedSessions,
+                    totalFocusTime: totalFocusTime,
+                    isRunning: isRunning,
+                    timeLeft: timeLeft,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('focusProData', JSON.stringify(data));
+                console.log('Data saved to localStorage:', data);
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        function loadFromStorage() {
+            console.log('Loading from localStorage...');
+            try {
+                const saved = localStorage.getItem('focusProData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    console.log('Data loaded from localStorage:', data);
+                    
+                    // Restore variables
+                    completedSessions = data.completedSessions || [];
+                    totalFocusTime = data.totalFocusTime || 0;
+                    
+                    // Restore current task (but not if timer was running - that would be confusing)
+                    if (data.currentTask && !data.isRunning) {
+                        currentTask = data.currentTask;
+                        const currentTaskDisplay = document.getElementById('currentTask');
+                        currentTaskDisplay.textContent = currentTask;
+                        currentTaskDisplay.classList.remove('empty');
+                    }
+                    
+                    updateStatsDisplay();
+                    console.log(`Loaded ${completedSessions.length} completed sessions, ${totalFocusTime} minutes total focus time`);
+                } else {
+                    console.log('No saved data found');
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+            }
+        }
+
+        function clearStorage() {
+            console.log('Clearing localStorage...');
+            try {
+                localStorage.removeItem('focusProData');
+                completedSessions = [];
+                totalFocusTime = 0;
+                updateStatsDisplay();
+                console.log('Storage cleared successfully');
+            } catch (error) {
+                console.error('Error clearing localStorage:', error);
+            }
+        }
+
+        function updateStatsDisplay() {
+            // We'll need to add these elements to the HTML
+            const sessionsElement = document.getElementById('sessionsCount');
+            const focusTimeElement = document.getElementById('focusTime');
+            
+            if (sessionsElement) {
+                sessionsElement.textContent = completedSessions.length;
+            }
+            
+            if (focusTimeElement) {
+                const hours = Math.floor(totalFocusTime / 60);
+                const minutes = totalFocusTime % 60;
+                if (hours > 0) {
+                    focusTimeElement.textContent = `${hours}h ${minutes}m`;
+                } else {
+                    focusTimeElement.textContent = `${minutes}m`;
+                }
             }
         }
 
         // Initialize display on load
         updateDisplay();
+        
+        // Load saved data
+        loadFromStorage();
         
         // Initialize task display
         document.getElementById('currentTask').classList.add('empty');
@@ -398,6 +565,14 @@
         
         // Add Set Task button event listener
         document.getElementById('setTaskBtn').addEventListener('click', setTask);
+        
+        // Add Clear Data button event listener
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                clearStorage();
+                console.log('All data cleared by user');
+            }
+        });
         
         // Add task input event listeners
         document.getElementById('taskInput').addEventListener('keypress', function(e) {
