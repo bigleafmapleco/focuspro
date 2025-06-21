@@ -3,12 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FocusPro - A modern Pomodoro timer app to boost your productivity">
+    <meta name="keywords" content="pomodoro, timer, productivity, focus, work">
+    <meta name="author" content="FocusPro">
     <title>FocusPro</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div id="app">
-        <!-- App content will be rendered here -->
+        <header class="app-header">
+            <h1 class="app-title">Focus Pro</h1>
+        </header>
+
+        <main class="main-content">
+            <section class="timer-section" aria-labelledby="timer-heading">
+                <h2 id="timer-heading" class="visually-hidden">Pomodoro Timer</h2>
+                
+                <div class="timer-display">
+                    <div class="timer-circle">
+                        <div class="progress-indicator" aria-hidden="true"></div>
+                        <div class="time-display" data-timer="25:00">25:00</div>
+                    </div>
+                </div>
+
+                <div class="timer-controls">
+                    <button class="btn btn-primary" data-btn-start aria-label="Start timer">
+                        Start
+                    </button>
+                    <button class="btn btn-secondary" data-btn-pause aria-label="Pause timer" disabled>
+                        Pause
+                    </button>
+                    <button class="btn btn-secondary" data-btn-reset aria-label="Reset timer">
+                        Reset
+                    </button>
+                </div>
+            </section>
+
+            <section class="task-section" aria-labelledby="task-heading">
+                <h2 id="task-heading">Current Task</h2>
+                <form class="task-form" data-task-form>
+                    <div class="input-group">
+                        <label for="task-input" class="visually-hidden">Enter your current task</label>
+                        <input 
+                            type="text" 
+                            id="task-input" 
+                            class="task-input" 
+                            data-task-input
+                            placeholder="What are you working on?"
+                            aria-describedby="task-submit"
+                        >
+                        <button 
+                            type="submit" 
+                            class="btn btn-primary" 
+                            id="task-submit"
+                            data-task-submit
+                            aria-label="Add task"
+                        >
+                            Add Task
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="stats-section" aria-labelledby="stats-heading">
+                <h2 id="stats-heading">Today's Progress</h2>
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <h3 class="stat-title">Completed Sessions</h3>
+                        <div class="stat-value" data-sessions-completed>0</div>
+                    </article>
+                    <article class="stat-card">
+                        <h3 class="stat-title">Total Focus Time</h3>
+                        <div class="stat-value" data-total-time>0 min</div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="history-section" aria-labelledby="history-heading" hidden>
+                <h2 id="history-heading">Completed Tasks</h2>
+                <div class="history-container" data-history-container>
+                    <!-- Completed tasks will be dynamically added here -->
+                </div>
+                <button class="btn btn-secondary" data-toggle-history aria-label="Toggle task history">
+                    Hide History
+                </button>
+            </section>
+        </main>
     </div>
     
     <script src="js/main.js" type="module"></script>
